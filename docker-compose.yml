@@ -1,0 +1,117 @@
+version: "3"
+
+services:
+  pgProd:
+    image: postgres:14.1-alpine3.15
+    container_name: pgProd
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: voicer
+      POSTGRES_PASSWORD: '@Voicerprj01'
+      POSTGRES_DB: voicerPg
+
+  pgDev:
+    image: postgres:14.1-alpine3.15
+    container_name: pgDev
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voicerDev
+
+  pgTest:
+    image: postgres:14.1-alpine3.15
+    container_name: pgTest
+    ports:
+      - 5435:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voicerTest
+
+  voicerApi:
+    build: .
+    image: antoniocenteno/voicer-api
+    container_name: voicerApi
+    ports:
+      - 3500:3500
+    depends_on:
+      - pgProd
+      - pgDev
+      - pgTest
+
+  voicerPickingApi:
+    image: antoniocenteno/voicer-picking-api
+    container_name: voicerPickingApi
+    ports:
+      - 3030:3030
+    depends_on:
+      - pgProd
+      - pgDev
+      - pgTest
+  
+  voicerWeb:
+    image: antoniocenteno/voicer-web
+    container_name: voicerWeb
+    ports:
+      - 8080:80
+    environment:
+      - REACT_APP_API_URL=http://docker.host.internal:3030
+    depends_on:
+      - voicerApi
+      - voicerPickingApi
+
+  readerMongo:
+    container_name: wisReaderMongo
+    image: mongo:4.4.10
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=wis
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - /data/wisReader:/data/db
+    ports:
+      - 28000:27017
+
+  reader:
+    build: .
+    image: antoniocenteno/wis-reader
+    container_name: wisReader
+    volumes:
+      - ./:/usr/app/
+    tty: true
+
+  writer:
+    build: .
+    image: antoniocenteno/wis-writer
+    container_name: wisWriter
+    volumes:
+      - ./:/usr/app/
+    tty: true
+  
+  writerMongo:
+    container_name: wisWriterMongo
+    image: mongo:4.4.10
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=wis
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - /data/wisWriter:/data/db
+    ports:
+      - 28001:27017
+
+  mongoServer:
+    image: antoniocenteno/mongo-server
+    container_name: mongo-server
+    ports:
+      - 9000:9000
+    depends_on:
+      - writerMongo
+      - readerMongo
+      - reader
+      - writer

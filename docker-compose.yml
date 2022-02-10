@@ -70,7 +70,7 @@ services:
     restart: unless-stopped
     volumes:
       - type: bind
-        source: /app
+        source: .
         target: /home/atech/webvoicer/
         volume:
           nocopy: false

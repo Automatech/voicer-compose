@@ -1,4 +1,4 @@
-version: "3"
+version: "3.6"
 
 services:
   voicerPostgres:
@@ -68,11 +68,17 @@ services:
     image: antoniocenteno/voicer-web
     container_name: voicer_web
     restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /usr/share/nginx/html
+        target: ../voicerWeb
+        volume:
+          nocopy: true
     env_file:
       - ./.env-voicer-web
     tty: true
     ports:
-      - 8080:5000
+      - 8080:80
     depends_on:
       - voicerApi
       - voicerBackendWeb

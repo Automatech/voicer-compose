@@ -70,10 +70,10 @@ services:
     restart: unless-stopped
     volumes:
       - type: bind
-        source: /data
-        target: ${pwd}/../voicerWeb
+        source: /app
+        target: /home/atech/webvoicer/
         volume:
-          nocopy: true
+          nocopy: false
     env_file:
       - ./.env-voicer-web
     tty: true

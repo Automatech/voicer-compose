@@ -1,9 +1,12 @@
 version: "3"
 
 services:
-  pgProd:
+  voicerPostgres:
+    container_name: voicer_pg
     image: postgres:14.1-alpine3.15
-    container_name: pgProd
+    restart: unless-stopped
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
     ports:
       - 5433:5432
     environment:
@@ -11,107 +14,104 @@ services:
       POSTGRES_PASSWORD: '@Voicerprj01'
       POSTGRES_DB: voicerPg
 
-  pgDev:
-    image: postgres:14.1-alpine3.15
-    container_name: pgDev
-    ports:
-      - 5434:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: voicerDev
-
-  pgTest:
-    image: postgres:14.1-alpine3.15
-    container_name: pgTest
-    ports:
-      - 5435:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: voicerTest
-
-  voicerApi:
-    build: .
-    image: antoniocenteno/voicer-api
-    container_name: voicerApi
-    ports:
-      - 3500:3500
-    depends_on:
-      - pgProd
-      - pgDev
-      - pgTest
-
-  voicerPickingApi:
-    image: antoniocenteno/voicer-picking-api
-    container_name: voicerPickingApi
-    ports:
-      - 3030:3030
-    depends_on:
-      - pgProd
-      - pgDev
-      - pgTest
-  
-  voicerWeb:
-    image: antoniocenteno/voicer-web
-    container_name: voicerWeb
-    ports:
-      - 8080:80
-    environment:
-      - REACT_APP_API_URL=http://docker.host.internal:3030
-    depends_on:
-      - voicerApi
-      - voicerPickingApi
-
-  readerMongo:
-    container_name: wisReaderMongo
+  voicerMongoReader:
+    container_name: voicer_mongoReader
     image: mongo:4.4.10
     restart: unless-stopped
+    volumes:
+      - ./data/mongo/reader:/data/db
     environment:
       - MONGO_INITDB_DATABASE=wis
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
-    volumes:
-      - /data/wisReader:/data/db
     ports:
       - 28000:27017
 
-  reader:
-    build: .
-    image: antoniocenteno/wis-reader
-    container_name: wisReader
-    volumes:
-      - ./:/usr/app/
-    tty: true
-
-  writer:
-    build: .
-    image: antoniocenteno/wis-writer
-    container_name: wisWriter
-    volumes:
-      - ./:/usr/app/
-    tty: true
-  
-  writerMongo:
-    container_name: wisWriterMongo
+  voicerMongoWriter:
+    container_name: voicer_mongoWriter
     image: mongo:4.4.10
     restart: unless-stopped
+    volumes:
+      - ./data/mongo/writer:/data/db
     environment:
       - MONGO_INITDB_DATABASE=wis
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
-    volumes:
-      - /data/wisWriter:/data/db
     ports:
       - 28001:27017
 
-  mongoServer:
-    image: antoniocenteno/mongo-server
-    container_name: mongo-server
+  voicerApi:
+    image: antoniocenteno/voicer-api
+    container_name: voicer_api
+    restart: unless-stopped
+    tty: true
     ports:
-      - 9000:9000
+      - 3500:3000
     depends_on:
-      - writerMongo
-      - readerMongo
-      - reader
-      - writer
+      - voicerPostgres
+
+  voicerBackendWeb:
+    image: antoniocenteno/voicer-backend-web
+    container_name: voicer_backendWeb
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 3030:3000
+    depends_on:
+      - voicerPostgres
+  
+  voicerWeb:
+    image: antoniocenteno/voicer-web
+    container_name: voicer_web
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 8080:80
+    depends_on:
+      - voicerApi
+      - voicerBackendWeb
+
+  voicerOrchestratorServer:
+    image: antoniocenteno/voicer-orchestrator-server
+    container_name: voicer_orchestratorServer
+    restart: unless-stopped
+    ports:
+      - 3333:3000
+      - 9001:9000
+
+  voicerMongoServer:
+    image: antoniocenteno/voicer-mongo-server
+    container_name: voicer_mongoServer
+    restart: unless-stopped
+    ports:
+      - 9002:9000
+    depends_on:
+      - voicerMongoReader
+      - voicerMongoWriter
+
+  voicerOracleServer:
+    image: antoniocenteno/voicer-oracle-server
+    container_name: voicer_oracleServer
+    restart: unless-stopped
+    ports:
+      - 9003:9000
+
+  voicerReader:
+    image: antoniocenteno/voicer-reader
+    container_name: voicer_reader
+    restart: unless-stopped
+    tty: true
+    depends_on:
+      - voicerOrchestratorServer
+      - voicerMongoServer
+      - voicerOracleServer
+
+  voicerWriter:
+    image: antoniocenteno/voicer-writer
+    container_name: voicer_writer
+    restart: unless-stopped
+    tty: true
+    depends_on:
+      - voicerOrchestratorServer
+      - voicerMongoServer
+      - voicerOracleServer

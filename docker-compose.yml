@@ -69,11 +69,7 @@ services:
     container_name: voicer_web
     restart: unless-stopped
     volumes:
-      - type: bind
-        source: .
-        target: /home/atech/webvoicer/
-        volume:
-          nocopy: false
+      - voicerWeb-data:/app
     env_file:
       - ./.env-voicer-web
     tty: true
@@ -144,3 +140,4 @@ volumes:
   mongoWriter-data:
   postgres-data:
   sqlite-data:
+  voicerWeb-data:

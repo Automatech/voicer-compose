@@ -71,7 +71,7 @@ services:
     volumes:
       - type: bind
         source: /usr/share/nginx/html
-        target: ../voicerWeb
+        target: ${pwd}/../voicerWeb
         volume:
           nocopy: true
     env_file:

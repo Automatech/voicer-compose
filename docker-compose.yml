@@ -6,7 +6,7 @@ services:
     image: postgres:14.1-alpine3.15
     restart: unless-stopped
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - data-volume:/var/lib/postgresql/data
     ports:
       - 5433:5432
     environment:
@@ -19,7 +19,7 @@ services:
     image: mongo:4.4.10
     restart: unless-stopped
     volumes:
-      - ./data/mongo/reader:/data/db
+      - data-volume:/data/db
     environment:
       - MONGO_INITDB_DATABASE=wis
       - MONGO_INITDB_ROOT_USERNAME=root
@@ -32,7 +32,7 @@ services:
     image: mongo:4.4.10
     restart: unless-stopped
     volumes:
-      - ./data/mongo/writer:/data/db
+      - data-volume:/data/db
     environment:
       - MONGO_INITDB_DATABASE=wis
       - MONGO_INITDB_ROOT_USERNAME=root
@@ -72,7 +72,7 @@ services:
       - ./.env-voicer-web
     tty: true
     ports:
-      - 8080:80
+      - 8080:5000
     depends_on:
       - voicerApi
       - voicerBackendWeb
@@ -81,6 +81,8 @@ services:
     image: antoniocenteno/voicer-orchestrator-server
     container_name: voicer_orchestratorServer
     restart: unless-stopped
+    volumes:
+      - data-volume:/dist/sqlite/database
     env_file:
       - ./.env-voicer-orchestrator-server
     ports:
@@ -91,13 +93,12 @@ services:
     image: antoniocenteno/voicer-mongo-server
     container_name: voicer_mongoServer
     restart: unless-stopped
+    volumes:
+      - data-volume:/dist/infra/database
     env_file:
       - ./.env-voicer-mongo-server
     ports:
       - 9002:9000
-    depends_on:
-      - voicerMongoReader
-      - voicerMongoWriter
 
   voicerOracleServer:
     image: antoniocenteno/voicer-oracle-server
@@ -125,9 +126,12 @@ services:
     container_name: voicer_writer
     restart: unless-stopped
     env_file:
-      - ./.env-voicer-oracle-writer
+      - ./.env-voicer-writer
     tty: true
     depends_on:
       - voicerOrchestratorServer
       - voicerMongoServer
       - voicerOracleServer
+
+volumes:
+  data-volume:

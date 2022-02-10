@@ -44,6 +44,8 @@ services:
     image: antoniocenteno/voicer-api
     container_name: voicer_api
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-api
     tty: true
     ports:
       - 3500:3000
@@ -54,6 +56,8 @@ services:
     image: antoniocenteno/voicer-backend-web
     container_name: voicer_backendWeb
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-backend-web
     tty: true
     ports:
       - 3030:3000
@@ -64,6 +68,8 @@ services:
     image: antoniocenteno/voicer-web
     container_name: voicer_web
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-web
     tty: true
     ports:
       - 8080:80
@@ -75,6 +81,8 @@ services:
     image: antoniocenteno/voicer-orchestrator-server
     container_name: voicer_orchestratorServer
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-orchestrator-server
     ports:
       - 3333:3000
       - 9001:9000
@@ -83,6 +91,8 @@ services:
     image: antoniocenteno/voicer-mongo-server
     container_name: voicer_mongoServer
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-mongo-server
     ports:
       - 9002:9000
     depends_on:
@@ -93,6 +103,8 @@ services:
     image: antoniocenteno/voicer-oracle-server
     container_name: voicer_oracleServer
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-oracle-server
     ports:
       - 9003:9000
 
@@ -100,6 +112,8 @@ services:
     image: antoniocenteno/voicer-reader
     container_name: voicer_reader
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-reader
     tty: true
     depends_on:
       - voicerOrchestratorServer
@@ -110,6 +124,8 @@ services:
     image: antoniocenteno/voicer-writer
     container_name: voicer_writer
     restart: unless-stopped
+    env_file:
+      - ./.env-voicer-oracle-writer
     tty: true
     depends_on:
       - voicerOrchestratorServer

@@ -70,7 +70,7 @@ services:
     restart: unless-stopped
     volumes:
       - type: bind
-        source: /usr/share/nginx/html
+        source: /data
         target: ${pwd}/../voicerWeb
         volume:
           nocopy: true

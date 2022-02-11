@@ -137,7 +137,7 @@ services:
 
 volumes:
   orchestrator-db:
-    type: external
+    external: true
   mongoReader-data:
   mongoWriter-data:
   postgres-data:

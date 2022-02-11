@@ -84,7 +84,7 @@ services:
     container_name: voicer_orchestratorServer
     restart: unless-stopped
     volumes:
-      - sqliteOrchestrator-data:/dist/sqlite/database
+      - sqliteOrchestrator-data:/dist/infra/database
     env_file:
       - ./.env-voicer-orchestrator-server
     ports:
